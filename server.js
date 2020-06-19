@@ -12,9 +12,10 @@ const app = express();
 app.use( cors() );
 
 
-app.get('/location', (request,response) => {
+app.get('/location', (request, response) => {
   let data = require('./data/location.json');
-  // (parameter) response: Response<any>;
+  let actualData = new Location(data[0]);
+  actualData.search_query = request.query.city;
   response.status(200).json(actualData);
 });
 
@@ -46,17 +47,19 @@ function Restaurant(obj) {
 
 //////////////////////////WEATHER////////////////
 
-app.get('/weather', (request,response) => {
-
-  let data = require('./data/weather.json');
-  let weatherInfo = new Weather(data[0]);
-  response.status(200).json(weatherInfo);
+app.get('/weather', (request, response) => {
+  let weatherData = require('./data/weather.json');
+  let weekPrediction = [];
+  weatherData.data.forEach(day => {
+    let forecast = new Forecast(day);
+    weekPrediction.push(forecast);
+  });
+  response.status(200).json(weekPrediction);
 });
 
-  function Weather(obj) {
-    this.high_temp = obj.data.obj.high_temp;
-    this.wind_spd = obj.data.wind_spd;
-    this.description = obj.data.description;
+function Forecast(obj) {
+  this.forecast = obj.weather.description;
+  this.time = obj.datetime;
 }
 
 // $('thing').on('something', () => {})
