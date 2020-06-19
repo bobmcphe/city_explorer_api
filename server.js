@@ -49,12 +49,12 @@ function Restaurant(obj) {
 
 app.get('/weather', (request, response) => {
   let weatherData = require('./data/weather.json');
-  let weekPrediction = [];
+  let weeklyForecast = [];
   weatherData.data.forEach(day => {
     let forecast = new Forecast(day);
-    weekPrediction.push(forecast);
+    weeklyForecast.push(forecast);
   });
-  response.status(200).json(weekPrediction);
+  response.status(200).json(weeklyForecast); //what exactly is this doing?
 });
 
 function Forecast(obj) {
@@ -62,26 +62,6 @@ function Forecast(obj) {
   this.time = obj.datetime;
 }
 
-// $('thing').on('something', () => {})
-// app.get('/weather', (request, response) => {
-//     let data = require('./data/weather.json');
-  
-//     let weatherData = [];
-//     data.forEach( restObject => {
-//       let weather = new Weather(restObject);
-//       weatherData.push(weather);
-//     });
-  
-//     response.status(200).json(weatherData);
-//   });
-  
-//   function Weather(obj) {
-//     this.high_temp = obj.data.obj.high_temp;
-//     this.wind_spd = obj.data.wind_spd;
-//     this.description = obj.data.description;
-//   }
-
-// app.put(), app.delete(), app.post()
 
 app.use('*', (request,response) => {
   response.status(404).send('Huhhhh?');
