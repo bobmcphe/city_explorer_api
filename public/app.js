@@ -1,96 +1,76 @@
-// 'use strict';
-
-// $('form').on('submit', getLocation);
-
-// function getLocation(l) {
-//     l.preventDefault();
-
-//     let city = $('city-name').val();
-//     console.log('you are searching for', city);
-
-
-
-// }
-
 'use strict';
 
-// dotenv, express, cors
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
+let API = 'http://localhost:3000';
 
-// this is MAGIC. Trust
-// Anything from the .env file shows up here
-const PORT = process.env.PORT;
-
-// Get an "instance" of express as our app
-const app = express();
-
-app.use( cors() );
-
-app.get('/location', (request,response) => {
-  // Read in data that came from an external API
-  let data = require('./data/location.json');
-  // Adapt the data to match the contract
-  let actualData = new Location(data[0]);
-  // Send out the adapted data
-  response.status(200).json(actualData);
-});
-
-function Location( obj ) {
-  this.latitude = obj.lat;
-  this.longitude = obj.lon;
-  this.formatted_query = obj.display_name;
+function setEventListeners() {
+  $('#search-form').on('submit', fetchCityData);
 }
 
-// $('thing').on('something', () => {})
-app.get('/restaurants', (request, response) => {
-  let data = require('./data/restaurants.json');
+function fetchCityData(event) {
 
-  let allRestaurants = [];
-  data.nearby_restaurants.forEach( restObject => {
-    let restaurant = new Restaurant(restObject);
-    allRestaurants.push(restaurant);
-  });
+  event.preventDefault();
 
-  response.status(200).json(allRestaurants);
-});
+  let searchQuery = $('#input-search').val().toLowerCase();
 
-function Restaurant(obj) {
-  this.restaurant = obj.restaurant.name;
-  this.locality = obj.restaurant.location.locality;
-  this.cuisines = obj.restaurant.cuisines;
+  $("#map").hide();
+  $("#title").hide();
+  $(".columns section").hide();
+
+  const ajaxSettings = {
+    method: 'get',
+    dataType: 'json',
+    data: { city: searchQuery }
+  };
+
+  $.ajax(`${API}/location`, ajaxSettings)
+    .then(location => {
+      showTitle(location);
+      displayMap(location);
+      getRestaurants(location);
+    })
+    .catch(error => {
+      console.error(error);
+    });
 }
 
-// app.put(), app.delete(), app.post()
+function displayMap(location) {
+  let template = $("#image-template").html();
+  let markup = Mustache.render(template, location);
+  $("#map").html(markup)
+  $("#map").show();
+}
 
-app.use('*', (request,response) => {
-  response.status(404).send('Huh?');
+function showTitle(location) {
+  let template = $("#title-template").html();
+  let markup = Mustache.render(template, location);
+  $("#title").html(markup)
+  $("#title").show();
+}
+
+function getRestaurants(location) {
+
+  const ajaxSettings = {
+    method: 'get',
+    dataType: 'json',
+    data: location
+  };
+
+  $.ajax(`${API}/restaurants`, ajaxSettings)
+    .then(result => {
+      let $container = $('#restaurants');
+      let $list = $('#restaurant-results');
+      let template = $('#restaurant-results-template').html();
+      result.forEach(entry => {
+        let markup = Mustache.render(template, entry);
+        $list.append(markup);
+      });
+      $container.show();
+    })
+    .catch(error => {
+      console.error(error);
+    });
+}
+
+$('document').ready(function () {
+  setEventListeners();
 });
-
-app.use((error, request, response, next) => {
-  console.log(error);
-  response.status(500).send('server is broken');
-});
-
-app.listen( PORT, () => console.log('Server running on port', PORT));
-
-// Handle a request for location data
-// Get a city from the client
-// Fetch data from an API
-// Adapt the data, using a Constructor Function
-// Send the adapted data to the client
-
-
-// Locaton Constructor Function
-// Take in some big object, turn it into something that matches the contract
-
-
-// Handle a request for restaurant data
-// Get location information from the client (lat,long,city-name)
-// Fetch data from an API
-// Adapt the data, using a Constructor Function
-// Send the adapted data to the client
-
-// Restaurant Constructor Function
-// Take in some big object, turn it into something that matches the contract
