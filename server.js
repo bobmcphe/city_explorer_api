@@ -1,41 +1,33 @@
 'use strict';
 
-// dotenv, express, cors
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
-// Anything from the .env file shows up here
+
 const PORT = process.env.PORT;
 
-console.log(process.env.PORT);
-
-// Get an "instance" of express as our app
 const app = express();
 
 app.use( cors() );
 
-app.listen( PORT, () => console.log('Server running on port', PORT));
-
 
 app.get('/location', (request,response) => {
-  // Read in data that came from an external API
   let data = require('./data/location.json');
-  // Adapt the data to match the contract
-  let actualData = new Location(data[0]);
-  // Send out the adapted data
+  // (parameter) response: Response<any>;
   response.status(200).json(actualData);
 });
 
 function Location( obj ) {
+  this.formatted_query = obj.display_name;
   this.latitude = obj.lat;
   this.longitude = obj.lon;
-  this.formatted_query = obj.display_name;
+
 }
 
-// $('thing').on('something', () => {})
-app.get('/restaurants', (request, response) => {
-  let data = require('./data/restaurants.json');
+//$('button').on('click', () => {})
+app.get('/restaurants', (request, response) => 
+{ let data = require('./data/restaurants.json');
 
   let allRestaurants = [];
   data.nearby_restaurants.forEach( restObject => {
@@ -54,37 +46,50 @@ function Restaurant(obj) {
 
 //////////////////////////WEATHER////////////////
 
-// $('thing').on('something', () => {})
-app.get('/weather', (request, response) => {
-    let data = require('./data/weather.json');
-  
-    let weatherData = [];
-    data.forEach( restObject => {
-      let weather = new Weather(restObject);
-      weatherData.push(weather);
-    });
-  
-    response.status(200).json(weatherData);
-  });
-  
+app.get('/weather', (request,response) => {
+
+  let data = require('./data/weather.json');
+  let weatherInfo = new Weather(data[0]);
+  response.status(200).json(weatherInfo);
+});
+
   function Weather(obj) {
     this.high_temp = obj.data.obj.high_temp;
     this.wind_spd = obj.data.wind_spd;
     this.description = obj.data.description;
-  }
+}
+
+// $('thing').on('something', () => {})
+// app.get('/weather', (request, response) => {
+//     let data = require('./data/weather.json');
+  
+//     let weatherData = [];
+//     data.forEach( restObject => {
+//       let weather = new Weather(restObject);
+//       weatherData.push(weather);
+//     });
+  
+//     response.status(200).json(weatherData);
+//   });
+  
+//   function Weather(obj) {
+//     this.high_temp = obj.data.obj.high_temp;
+//     this.wind_spd = obj.data.wind_spd;
+//     this.description = obj.data.description;
+//   }
 
 // app.put(), app.delete(), app.post()
 
 app.use('*', (request,response) => {
-  response.status(404).send('Huh?');
+  response.status(404).send('Huhhhh?');
 });
 
 app.use((error, request, response, next) => {
   console.log(error);
-  response.status(500).send('server is broken');
+  response.status(500).send('server is brokenmnn');
 });
 
-app.listen( PORT, () => console.log('Server running on port', PORT));
+app.listen( PORT, () => console.log('Server runninggggg on port', PORT));
 
 // Handle a request for location data
 // Get a city from the client
