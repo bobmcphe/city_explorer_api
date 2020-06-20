@@ -31,8 +31,8 @@ app.get('/restaurants', (request, response) =>
 { let data = require('./data/restaurants.json');
 
   let allRestaurants = [];
-  data.nearby_restaurants.forEach( restObject => {
-    let restaurant = new Restaurant(restObject);
+  data.nearby_restaurants.forEach( object => {
+    let restaurant = new Restaurant(object);
     allRestaurants.push(restaurant);
   });
 
@@ -73,6 +73,8 @@ app.use((error, request, response, next) => {
 });
 
 app.listen( PORT, () => console.log('Server runninggggg on port', PORT));
+
+//below is outline and pseudo-code of what I am trying to do, written by John
 
 // Handle a request for location data
 // Get a city from the client
