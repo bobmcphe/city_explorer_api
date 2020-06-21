@@ -27,40 +27,58 @@ function Location( obj ) {
 }
 
 //$('button').on('click', () => {})
-app.get('/restaurants', (request, response) => 
-{ let data = require('./data/restaurants.json');
+// app.get('/restaurants', (request, response) => 
+// { let data = require('./data/restaurants.json');
 
-  let allRestaurants = [];
-  data.nearby_restaurants.forEach( object => {
-    let restaurant = new Restaurant(object);
-    allRestaurants.push(restaurant);
-  });
+//   let allRestaurants = [];
+//   data.nearby_restaurants.forEach( object => {
+//     let restaurant = new Restaurant(object);
+//     allRestaurants.push(restaurant);
+//   });
 
-  response.status(200).json(allRestaurants);
-});
+//   response.status(200).json(allRestaurants);
+// });
 
-function Restaurant(obj) {
-  this.restaurant = obj.restaurant.name;
-  this.locality = obj.restaurant.location.locality;
-  this.cuisines = obj.restaurant.cuisines;
-}
+// function Restaurant(obj) {
+//   this.restaurant = obj.restaurant.name;
+//   this.locality = obj.restaurant.location.locality;
+//   this.cuisines = obj.restaurant.cuisines;
+// }
 
 //////////////////////////WEATHER////////////////
 
 app.get('/weather', (request, response) => {
   let weatherData = require('./data/weather.json');
-  let weeklyForecast = [];
-  weatherData.data.forEach(day => {
-    let forecast = new Forecast(day);
-    weeklyForecast.push(forecast);
+  console.log('this is my weather data =============', weatherData);
+    const results = weatherData.data.map(stuff => {
+   
+   return new Forecast(stuff);
   });
-  response.status(200).json(weeklyForecast); //what exactly is this doing?
+  response.status(200).json(results);
 });
+// TODO SOEMTHIGN
 
 function Forecast(obj) {
   this.forecast = obj.weather.description;
   this.time = obj.datetime;
-}
+
+};
+
+
+// app.get('/weather', (request, response) => {
+//   let weatherData = require('./data/weather.json');
+//   let weeklyForecast = [];
+//   weatherData.data.forEach(day => {
+//     let forecast = new Forecast(day);
+//     weeklyForecast.push(forecast);
+//   });
+//   response.status(200).json(weeklyForecast); //what exactly is this doing?
+// });
+
+// function Forecast(obj) {
+//   this.forecast = obj.weather.description;
+//   this.time = obj.datetime;
+// }
 
 
 app.use('*', (request,response) => {
