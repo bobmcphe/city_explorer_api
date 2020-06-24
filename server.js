@@ -59,7 +59,7 @@ function fetchLocationDataFromAPI(city, response) {
     response.status(200).send(locationObj);
   })
   .catch(() => {
-    response.status(500).send(console.log("You broke me, now fix it."));
+    response.status(500).send(console.log("You broke me -location- now fix it."));
   });
 }
 
@@ -79,7 +79,7 @@ function Location(obj, city) {
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
 
-let weatherCache = {};
+let weatherCache = {}; //why an empty object instead of an empty array? Is this only b/c the format in JSON file?
 
 
 function handleWeather(request, response) {
@@ -92,7 +92,6 @@ function handleWeather(request, response) {
 
   superagent 
     .get(API)
-    // .set("api-key", process.env.WEATHER_API_KEY)
     .then((dataResults) => {
       let results = dataResults.body.data.map((result) => {
         return new Weather(result);
@@ -100,7 +99,7 @@ function handleWeather(request, response) {
       response.status(200).json(results);
     })
     .catch((err) => {
-      console.error("Weather api is not working", err);
+      console.error("Your weather api is broke", err);
     });
 }
 
