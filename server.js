@@ -13,14 +13,42 @@ app.use( cors() );
 
 
 //declare routes
-app.get('/', handleHomepage);
+app.get('/', handleHomePage);
 app.get('/location', handleLocation);
-app.get('/weather', handleWeather);
+// app.get('/weather', handleWeather);
 
-app.get('/trail', handleTrail);
+// app.get('/trail', handleTrail);
+
+function handleHomePage(request, response) {
+  response.send(`PORT ${PORT} is running`);
+}
+
+// In Memory Cache
+let locations = {};
+
 
 function handleLocation(request, response) {
-  const API1 =  `HTTPS://US1.LOCATIONIQ.COM/V1/SEARCH.php?key=${process.env.GEOCODE_API_KEY}&Q=${REQUEST.QUERY.CITY}$FORMAT=JSON`;
+
+  if (locations[request.query.city]) {
+    console.log('we have it already...')
+    response.status(200).send(locations[request.query.city]);
+  }
+  else {
+    console.log('going to get it');
+    fetchLocationDataFromAPI(request.query.city, response);
+  }
+
+}
+
+function fetchLocationDataFromAPI(city, response) {
+
+  const API1 = 'https://us1.locationiq.com/v1/search.php';
+
+  let queryObject = {
+    key: process.env.GEOCODE_API_KEY,
+    q: city,
+    format: 'json'
+  }
 
   superagent
   .get(API1)
