@@ -31,7 +31,7 @@
 //   });
 //   response.status(200).json(results);
 // });
-// // TODO SOEMTHIGN
+
 
 // function Forecast(obj) {
 //   this.forecast = obj.weather.description;

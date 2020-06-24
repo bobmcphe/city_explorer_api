@@ -4,7 +4,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const superagent = require("superagent");
+
 const PORT = process.env.PORT;
+
 const app = express();
 
 app.use( cors() );
@@ -42,7 +44,6 @@ function Location(obj, city) {
   
 // }
 
-
 app.use('*', (request,response) => {
   response.status(404).send('Huhhhh?');
 });
@@ -52,4 +53,4 @@ app.use((error, request, response, next) => {
   response.status(500).send('server is brokenmnn');
 });
 
-app.listen( PORT, () => console.log('Server runninggggg on port', PORT));
+app.listen( PORT, () => console.log('Server running on port', PORT));
