@@ -15,7 +15,7 @@ app.use( cors() );
 //declare routes
 app.get('/', handleHomePage);
 app.get('/location', handleLocation);
-// app.get('/weather', handleWeather);
+app.get('/weather', handleWeather);
 
 // app.get('/trail', handleTrail);
 
@@ -24,16 +24,15 @@ function handleHomePage(request, response) {
 }
 
 // In Memory Cache
-let weathers
- = {};
+let weathersC = {};
 
 
 function handleLocation(request, response) {
 
-  if (weathers
+  if (weathersC
     [request.query.city]) {
     console.log('we have it already...')
-    response.status(200).send(weathers
+    response.status(200).send(weathersC
       [request.query.city]);
   }
   else {
@@ -80,50 +79,34 @@ function Location(obj, city) {
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
 
-let weathers = {};
+let weatherCache = {};
 
 
-function handleLocation(request, response) {
+function handleWeather(request, response) {
+  const coordinates = {
+    lat: request.query.latitude,
+    lon: request.query.longitude,
+  };
 
-  if (weathers
-    [request.query.city]) {
-    console.log('we have it already...')
-    response.status(200).send(weathers
-      [request.query.city]);
-  }
-  else {
-    console.log('going to get it');
-    fetchLocationDataFromAPI(request.query.city, response);
-  }
+  const API = `https://api.weatherbit.io/v2.0/forecast/daily?key=${process.env.WEATHER_API_KEY}&lat=${coordinates.lat}&lon=${coordinates.lon}&days=8`;
 
+  superagent 
+    .get(API)
+    // .set("api-key", process.env.WEATHER_API_KEY)
+    .then((dataResults) => {
+      let results = dataResults.body.data.map((result) => {
+        return new Weather(result);
+      });
+      response.status(200).json(results);
+    })
+    .catch((err) => {
+      console.error("Weather api is not working", err);
+    });
 }
 
-function fetchLocationDataFromAPI(city, response) {
-
-  const API1 = 'https://us1.locationiq.com/v1/search.php';
-
-  let queryObject = {
-    key: process.env.GEOCODE_API_KEY,
-    q: city,
-    format: 'json'
-  }
-
-  superagent
-  .get(API1)
-  .then((data) => {
-    let locationObj = new Location(data.body[0], request.query.city);
-    response.status(200).send(locationObj);
-  })
-  .catch(() => {
-    response.status(500).send(console.log("You broke me, now fix it."));
-  });
-}
-
-function Location(obj, city) {
-  this.latitude = obj.lat;
-  this.longitude = obj.lon;
-  this.formatted_query = obj.display_name;
-  this.search_query = city;
+function Weather(obj) {
+  this.forecast = obj.weather.description;
+  this.time = new Date(obj.datetime).toDateString();
 }
 
 
