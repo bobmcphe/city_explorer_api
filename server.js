@@ -17,34 +17,35 @@ app.use( cors() );
 app.get('/', handleHomePage);
 app.get('/location', handleLocation);
 app.get('/weather', handleWeather);
-
+app.use("*", notFoundHandler);
 // app.get('/trail', handleTrail);
 
 function handleHomePage(request, response) {
-  response.send(`PORT ${PORT} is running`);
+  response.send(`PORT ${PORT} is r;alskdjflaksdjf;lkaunning`);
 }
 
 // In Memory Cache
-let weathersC = {};
+let weathersCache = {};
 
 
 function handleLocation(request, response) {
-
-  if (weathersC
+console.log('I entered this function');
+  if (weathersCache
     [request.query.city]) {
     console.log('we have it already...')
-    response.status(200).send(weathersC
+    response.status(200).send(weathersCache
       [request.query.city]);
   }
   else {
     console.log('going to get it');
+    console.log(request.query);
     fetchLocationDataFromAPI(request.query.city, response);
   }
 
 }
 
 function fetchLocationDataFromAPI(city, response) {
-
+console.log(city);
   const API1 = 'https://us1.locationiq.com/v1/search.php';
 
   let queryObject = {
@@ -55,11 +56,15 @@ function fetchLocationDataFromAPI(city, response) {
 
   superagent
   .get(API1)
+  .query(queryObject)
   .then((data) => {
-    let locationObj = new Location(data.body[0], request.query.city);
+    // console.log(data.body);
+    let locationObj = new Location(data.body[0], city);
+    // console.log(locationObj);
     response.status(200).send(locationObj);
   })
-  .catch(() => {
+  .catch((e) => {
+    console.log(e);
     response.status(500).send(console.log("You broke me -location- now fix it."));
   });
 }
@@ -84,11 +89,14 @@ let weatherCache = {}; //why an empty object instead of an empty array? Is this 
 
 
 function handleWeather(request, response) {
+  console.log(request.query);
   const coordinates = {
     lat: request.query.latitude,
     lon: request.query.longitude,
+    // lat: 47.6038321,
+    // lon: -122.3300624
   };
-
+  console.log('made it into weather handler');
   const API = `https://api.weatherbit.io/v2.0/forecast/daily?key=${process.env.WEATHER_API_KEY}&lat=${coordinates.lat}&lon=${coordinates.lon}&days=8`;
 
   superagent 
@@ -110,7 +118,9 @@ function Weather(obj) {
 }
 
 
-
+function notFoundHandler(request, response){
+  response.status(404).send('route not found');
+}
 
 
 
