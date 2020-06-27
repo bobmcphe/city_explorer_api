@@ -18,6 +18,7 @@ app.get('/', handleHomePage);
 app.get('/location', handleLocation);
 app.get('/weather', handleWeather);
 app.get('/trails', handleTrail);
+app.get('/movies', handleMovie);
 // app.use("*", notFoundHandler);
 
 
@@ -160,6 +161,52 @@ function Trail(obj) {
   this.condition_date = obj.conditionDate;
   this.condition_time = obj.conditionDate;
 }
+
+
+///////////////Movies///////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+
+function handleMovie(request, response) {
+  const API = `https://api.themoviedb.org/3/movie/550`; 
+
+  const movieObject = {
+    key: process.env.MOVIE_API_KEY,
+  };
+
+  superagent
+    .get(API)
+    .query(movieObject)
+    .then((dataResults) => {
+      let results = dataResults.body.movies.map((result) => {
+        return new Movie(result);
+      });
+      console.log(results);
+      response.status(200).json(results);
+    })
+    .catch((err) => {
+      console.error(" Your movie api is not working - fix it", err);
+    });
+}
+
+function Movie(obj) {
+  this.title = obj.title;
+  this.overview = obj.overview;
+  this.length = obj.length;
+  this.average_votes = obj.average_votes;
+  this.image_url = obj.image_url;
+  this.released_on = obj.released_on;
+}
+
+
+
+
+
+
+
+
+
+
 
 
 app.use('*', (request,response) => {
