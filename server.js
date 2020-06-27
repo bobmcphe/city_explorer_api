@@ -6,7 +6,7 @@ const cors = require('cors');
 const superagent = require('superagent');
 const { response, request} = require('express');
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 8080;
 
 const app = express();
 
@@ -17,38 +17,39 @@ app.use( cors() );
 app.get('/', handleHomePage);
 app.get('/location', handleLocation);
 app.get('/weather', handleWeather);
-app.use("*", notFoundHandler);
-// app.get('/trail', handleTrail);
+app.get('/trails', handleTrail);
+// app.use("*", notFoundHandler);
+
 
 function handleHomePage(request, response) {
-  response.send(`PORT ${PORT} is r;alskdjflaksdjf;lkaunning`);
+  response.send(`PORT ${PORT} is running`);
 }
 
 // In Memory Cache
-let weathersCache = {};
+let locationCache = {};
 
 
 function handleLocation(request, response) {
 console.log('I entered this function');
-  if (weathersCache
+  if (locationCache
     [request.query.city]) {
     console.log('we have it already...')
-    response.status(200).send(weathersCache
+    response.status(200).send(locationCache
       [request.query.city]);
   }
   else {
     console.log('going to get it');
-    console.log(request.query);
+   // console.log(request.query);
     fetchLocationDataFromAPI(request.query.city, response);
   }
 
 }
 
 function fetchLocationDataFromAPI(city, response) {
-console.log(city);
+//console.log(city);
   const API1 = 'https://us1.locationiq.com/v1/search.php';
 
-  let queryObject = {
+  let trailObject = {
     key: process.env.GEOCODE_API_KEY,
     q: city,
     format: 'json'
@@ -56,7 +57,7 @@ console.log(city);
 
   superagent
   .get(API1)
-  .query(queryObject)
+  .query(trailObject)
   .then((data) => {
     // console.log(data.body);
     let locationObj = new Location(data.body[0], city);
@@ -76,10 +77,6 @@ function Location(obj, city) {
   this.search_query = city;
 }
 
-// function handleWeather(request, response) {
-  
-// }
-
 
 ///////////////////weather/////////////////////////////
 ///////////////////////////////////////////////////////
@@ -91,10 +88,10 @@ let weatherCache = {}; //why an empty object instead of an empty array? Is this 
 function handleWeather(request, response) {
   console.log(request.query);
   const coordinates = {
-    lat: request.query.latitude,
-    lon: request.query.longitude,
-    // lat: 47.6038321,
-    // lon: -122.3300624
+     lat: request.query.latitude,
+     lon: request.query.longitude,
+    //lat: 47.6038321,
+    //lon: -122.3300624
   };
   console.log('made it into weather handler');
   const API = `https://api.weatherbit.io/v2.0/forecast/daily?key=${process.env.WEATHER_API_KEY}&lat=${coordinates.lat}&lon=${coordinates.lon}&days=8`;
@@ -118,32 +115,51 @@ function Weather(obj) {
 }
 
 
-function notFoundHandler(request, response){
-  response.status(404).send('route not found');
+// function notFoundHandler(request, response){
+//   response.status(404).send('route not found');
+// }
+
+
+///////////////Trails///////////////////////////
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+
+function handleTrail(request, response) {
+  const API = `https://www.hikingproject.com/data/get-trails`; 
+
+  const trailObject = {
+    key: process.env.TRAIL_API_KEY,
+    lat: request.query.latitude,
+    lon: request.query.longitude
+  };
+
+  superagent
+    .get(API)
+    .query(trailObject)
+    .then((dataResults) => {
+      let results = dataResults.body.trails.map((result) => {
+        return new Trail(result);
+      });
+      console.log(results);
+      response.status(200).json(results);
+    })
+    .catch((err) => {
+      console.error(" Your trail api is not working - fix it", err);
+    });
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+function Trail(obj) {
+  this.name = obj.name;
+  this.location = obj.location;
+  this.length = obj.length;
+  this.stars = obj.stars;
+  this.star_votes = obj.starVotes;
+  this.summary = obj.summary;
+  this.trail_url = obj.url;
+  this.conditions = obj.conditionDetails;
+  this.condition_date = obj.conditionDate;
+  this.condition_time = obj.conditionDate;
+}
 
 
 app.use('*', (request,response) => {
