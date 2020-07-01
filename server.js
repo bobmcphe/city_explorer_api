@@ -29,6 +29,11 @@ function handleHomePage(request, response) {
   response.send(`PORT ${PORT} is running`);
 }
 
+// check to see if client is connected
+client.connect()
+  .then(() => console.log('Client is connected'))
+  .catch(error => console.error('Client is NOT connected', error));
+
 // In Memory Cache
 let locationCache = {};
 
