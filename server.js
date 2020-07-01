@@ -5,9 +5,12 @@ const express = require('express');
 const cors = require('cors');
 const superagent = require('superagent');
 const { response, request} = require('express');
+const pg = require('pg');
+
 
 const PORT = process.env.PORT || 8080;
 
+const client = new pg.Client(process.env.DATABASE_URL);
 const app = express();
 
 app.use( cors() );
@@ -18,7 +21,7 @@ app.get('/', handleHomePage);
 app.get('/location', handleLocation);
 // app.get('/weather', handleWeather);
 // app.get('/trails', handleTrail);
-app.get('/movies', handleMovie);
+// app.get('/movies', handleMovie);
 // app.use("*", notFoundHandler);
 
 
@@ -30,20 +33,36 @@ function handleHomePage(request, response) {
 let locationCache = {};
 
 
-function handleLocation(request, response) {
-console.log('I entered this function');
-  if (locationCache
-    [request.query.city]) {
-    console.log('we have it already...')
-    response.status(200).send(locationCache
-      [request.query.city]);
-  }
-  else {
-    console.log('going to get it');
-   // console.log(request.query);
-    fetchLocationDataFromAPI(request.query.city, response);
-  }
+// function handleLocation(request, response) {
+// console.log('I entered this function');
+//   if (locationCache
+//     [request.query.city]) {
+//     console.log('we have it already...') //not working
+//     response.status(200).json(locationCache
+//       [request.query.city]);
+//   }
+//   else {
+//     console.log('going to get it');
+//    // console.log(request.query);
+//     fetchLocationDataFromAPI(request.query.city, response);
+//   }
 
+// }
+
+function handleLocation(request, response) {
+  const SQL = 'SELECT * FROM locations WHERE search_query = $1';
+  const safeQuery = [request.query.city];
+
+  client.query(SQL, safeQuery)
+    .then(results => {
+      if (results.rowCount) {
+        console.log('City is present in database');
+        response.status(200).send(results.rows[0]);
+      } else {
+        console.log('City is NOT present')
+        locationAPIHandler(request.query.city, response);
+      }
+    })
 }
 
 function fetchLocationDataFromAPI(city, response) {
@@ -76,6 +95,23 @@ function Location(obj, city) {
   this.longitude = obj.lon;
   this.formatted_query = obj.display_name;
   this.search_query = city;
+}
+
+function saveToDB(obj){
+  const lat = obj.latitude;
+  const lon = obj.longitude;
+  const formatted_query = obj.formatted_query;
+  const search_query = obj.search_query;
+  const safeQuery = [lat, lon, formatted_query, search_query];
+
+  //create SQL search query
+  const SQL = 'INSERT INTO locationdb (lat, lon, formatted_query, search_query) VALUES ($1, $2, $3, $4);'
+
+  client.query(SQL, safeQuery)
+      .then (results => {
+          response.status(200).json(results);
+      })
+      .catch(error => {response.status(500).send(error)});
 }
 
 
