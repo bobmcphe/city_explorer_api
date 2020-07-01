@@ -16,8 +16,8 @@ app.use( cors() );
 //declare routes
 app.get('/', handleHomePage);
 app.get('/location', handleLocation);
-app.get('/weather', handleWeather);
-app.get('/trails', handleTrail);
+// app.get('/weather', handleWeather);
+// app.get('/trails', handleTrail);
 app.get('/movies', handleMovie);
 // app.use("*", notFoundHandler);
 
@@ -158,8 +158,9 @@ function Trail(obj) {
   this.summary = obj.summary;
   this.trail_url = obj.url;
   this.conditions = obj.conditionDetails;
-  this.condition_date = obj.conditionDate;
-  this.condition_time = obj.conditionDate;
+  let splitDateTime = obj.conditionDate.split(' ')
+  this.condition_date = splitDateTime[0];
+  this.condition_time = splitDateTime[1];
 }
 
 
@@ -167,36 +168,37 @@ function Trail(obj) {
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 
-function handleMovie(request, response) {
-  const API = `https://api.themoviedb.org/3/movie/550`; 
+// function handleMovie(request, response) {
+//   const API = `https://api.themoviedb.org/`; 
 
-  const movieObject = {
-    key: process.env.MOVIE_API_KEY,
-  };
+//   const movieObject = {
+//     key: process.env.MOVIE_API_KEY,
+//   };
 
-  superagent
-    .get(API)
-    .query(movieObject)
-    .then((dataResults) => {
-      let results = dataResults.body.movies.map((result) => {
-        return new Movie(result);
-      });
-      console.log(results);
-      response.status(200).json(results);
-    })
-    .catch((err) => {
-      console.error(" Your movie api is not working - fix it", err);
-    });
-}
+//   superagent
+//     .get(API)
+//     .query(movieObject)
+//     .then((dataResults) => {
+//       console.log(dataResults);
+//       let results = dataResults.body.map((result) => {
+//         return new Movie(result);
+//       });
+//       response.status(200).json(results);
+//     })
+//     .catch((err) => {
+//       console.error(" Your movie api is not working - fix it", err);
+//     });
+// }
 
-function Movie(obj) {
-  this.title = obj.title;
-  this.overview = obj.overview;
-  this.length = obj.length;
-  this.average_votes = obj.average_votes;
-  this.image_url = obj.image_url;
-  this.released_on = obj.released_on;
-}
+// function Movie(obj) {
+//   this.title = obj.original_title;
+//   this.overview = obj.overview;
+//   this.average_votes = obj.vote_average;
+//   this.total_votes = obj.vote_count;
+//   this.image_url = `https://image.tmdb.org/t/p/w500${obj.poster_path}`;
+//   this.popular = obj.popularity;
+//   this.released_on = obj.release_date;
+// }
 
 
 
