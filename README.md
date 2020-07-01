@@ -21,7 +21,9 @@ City Explorer uses a node server to access API's to fetch data that is input fro
 ## Change Log
 <!-- Use this area to document the iterative changes made to your application as each feature is successfully implemented. Use time stamps. Here's an examples:
 
-01-01-2001 4:59pm - Application now has a fully-functional express server, with a GET route for the location resource. -->
+01-01-2001 4:59pm - Application now has a fully-functional express server, with a GET route for the location resource.
+
+06-26-2020 8:24pm - App now has functional location, weather, and hicking apis. -->
 
 6-17-2020 9:45pm - Application has some basic html, css, and other necessary files, but no working setup as yet.
 
