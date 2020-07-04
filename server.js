@@ -34,106 +34,75 @@ client.connect()
   .then(() => console.log('Client is connected'))
   .catch(error => console.error('Client is NOT connected', error));
 
+/////////////////LOCATION/////////////////////
+//////////////////////////////////////////////
+/////////////////////////////////////////////
+
 // In Memory Cache
 let locationCache = {};
 
-
-// function handleLocation(request, response) {
-// console.log('I entered this function');
-//   if (locationCache
-//     [request.query.city]) {
-//     console.log('we have it already...') //not working
-//     response.status(200).json(locationCache
-//       [request.query.city]);
-//   }
-//   else {
-//     console.log('going to get it');
-//    // console.log(request.query);
-//     fetchLocationDataFromAPI(request.query.city, response);
-//   }
-
-// }
-
 function handleLocation(request, response) {
-  const SQL = 'SELECT * FROM locations WHERE search_query = $1';
   const safeQuery = [request.query.city];
-
+  const SQL = 'SELECT * FROM locations WHERE search_query = $1;';
   client.query(SQL, safeQuery)
     .then(results => {
       if (results.rowCount) {
-        console.log('City is present in database');
         response.status(200).send(results.rows[0]);
       } else {
-        console.log('City is NOT present')
-        locationAPIHandler(request.query.city, response);
+        fetchLocationDataFromAPI(request.query.city, response);
       }
     })
+    .catch(error => response.status(500).send(error));
 }
 
 function fetchLocationDataFromAPI(city, response) {
-//console.log(city);
-  const API1 = 'https://us1.locationiq.com/v1/search.php';
-
-  let trailObject = {
+  const API = `https://us1.locationiq.com/v1/search.php`;
+  let queryObject = {
     key: process.env.GEOCODE_API_KEY,
     q: city,
     format: 'json'
-  }
+  };
 
   superagent
-  .get(API1)
-  .query(trailObject)
-  .then((data) => {
-    // console.log(data.body);
-    let locationObj = new Location(data.body[0], city);
-    // console.log(locationObj);
-    response.status(200).send(locationObj);
-  })
-  .catch((e) => {
-    console.log(e);
-    response.status(500).send(console.log("You broke me -location- now fix it."));
-  });
+    .get(API)
+    .query(queryObject)
+    .then((apiData) => {
+      let location = new Location(apiData.body[0], city);
+      cacheLocationToDataBase(location);
+      response.status(200).send(location);
+    })
+    .catch(() => {
+      response.status(500).send('error with LOCATION');
+    });
+}
+
+function cacheLocationToDataBase(locationObj) {
+  const safeQuery1 = [locationObj.formatted_query, locationObj.latitude, locationObj.longitude, locationObj.search_query];
+  const SQL1 = `
+      INSERT INTO locations (formatted_query, latitude, longitude, search_query) 
+      VALUES ($1, $2, $3, $4)
+      RETURNING *;`;
+  client.query(SQL1, safeQuery1)
+    .then(results => console.log('New City added to DB: ', results.rows[0]));
 }
 
 function Location(obj, city) {
+  this.formatted_query = obj.display_name;
   this.latitude = obj.lat;
   this.longitude = obj.lon;
-  this.formatted_query = obj.display_name;
   this.search_query = city;
 }
-
-function saveToDB(obj){
-  const lat = obj.latitude;
-  const lon = obj.longitude;
-  const formatted_query = obj.formatted_query;
-  const search_query = obj.search_query;
-  const safeQuery = [lat, lon, formatted_query, search_query];
-
-  //create SQL search query
-  const SQL = 'INSERT INTO locationdb (lat, lon, formatted_query, search_query) VALUES ($1, $2, $3, $4);'
-
-  client.query(SQL, safeQuery)
-      .then (results => {
-          response.status(200).json(results);
-      })
-      .catch(error => {response.status(500).send(error)});
-}
-
 
 ///////////////////weather/////////////////////////////
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
-
-let weatherCache = {}; //why an empty object instead of an empty array? Is this only b/c the format in JSON file?
-
 
 function handleWeather(request, response) {
   console.log(request.query);
   const coordinates = {
      lat: request.query.latitude,
      lon: request.query.longitude,
-    //lat: 47.6038321,
-    //lon: -122.3300624
+ 
   };
   console.log('made it into weather handler');
   const API = `https://api.weatherbit.io/v2.0/forecast/daily?key=${process.env.WEATHER_API_KEY}&lat=${coordinates.lat}&lon=${coordinates.lon}&days=8`;
@@ -155,11 +124,6 @@ function Weather(obj) {
   this.forecast = obj.weather.description;
   this.time = new Date(obj.datetime).toDateString();
 }
-
-
-// function notFoundHandler(request, response){
-//   response.status(404).send('route not found');
-// }
 
 
 ///////////////Trails///////////////////////////
@@ -203,52 +167,6 @@ function Trail(obj) {
   this.condition_date = splitDateTime[0];
   this.condition_time = splitDateTime[1];
 }
-
-
-///////////////Movies///////////////////////////
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-
-// function handleMovie(request, response) {
-//   const API = `https://api.themoviedb.org/`; 
-
-//   const movieObject = {
-//     key: process.env.MOVIE_API_KEY,
-//   };
-
-//   superagent
-//     .get(API)
-//     .query(movieObject)
-//     .then((dataResults) => {
-//       console.log(dataResults);
-//       let results = dataResults.body.map((result) => {
-//         return new Movie(result);
-//       });
-//       response.status(200).json(results);
-//     })
-//     .catch((err) => {
-//       console.error(" Your movie api is not working - fix it", err);
-//     });
-// }
-
-// function Movie(obj) {
-//   this.title = obj.original_title;
-//   this.overview = obj.overview;
-//   this.average_votes = obj.vote_average;
-//   this.total_votes = obj.vote_count;
-//   this.image_url = `https://image.tmdb.org/t/p/w500${obj.poster_path}`;
-//   this.popular = obj.popularity;
-//   this.released_on = obj.release_date;
-// }
-
-
-
-
-
-
-
-
-
 
 
 
